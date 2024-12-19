@@ -18,7 +18,7 @@ export function Card(props) {
     });
 
     const position = transform? `translate(${transform.x}px, ${transform.y}px)` : ``;
-    const rotate = props.card.tapped? " rotate(90deg)" : " rotate(0deg)";
+    const rotate = props.card.tapped? "90deg" : "0deg";
 
     var [image, setImage] = useState(placeholder);
 
