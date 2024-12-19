@@ -1,0 +1,12 @@
+.card {
+    background-color: black;
+    width: 15vh;
+    height: 21vh;
+    border-radius: 5%;
+    margin: 0.15vh;
+    z-index: 1;
+
+    background-size: cover;
+
+    transition: transform 50ms ease;
+}
