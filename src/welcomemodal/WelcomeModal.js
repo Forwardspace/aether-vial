@@ -11,7 +11,6 @@ export function WelcomeModal(props) {
             props.setState({...props.state.current, isAwaitingConnection: false, isConnected: true});
 
             conn.on("data", (data) => {
-                console.log("Received data from client: ", data);
                 props.handleData(data, true);
             });
 
@@ -40,7 +39,6 @@ export function WelcomeModal(props) {
 
         connection.on("open", () => {
             connection.on("data", (data) => {
-                console.log("Received data from host: ", data);
                 props.handleData(data, false);
             });
         })

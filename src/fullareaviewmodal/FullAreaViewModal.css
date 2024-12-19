@@ -33,4 +33,6 @@
     align-items: center;
 
     width: 100%;
+
+    transition: translate 150ms ease;
 }

@@ -18,7 +18,7 @@ export function Card(props) {
     });
 
     const position = transform? `translate(${transform.x}px, ${transform.y}px)` : ``;
-    const rotate = props.card.tapped? "90deg" : "0deg";
+    const rotate = props.card.tapped? "rotate(90deg)" : "rotate(0deg)";
 
     var [image, setImage] = useState(placeholder);
 
@@ -34,19 +34,14 @@ export function Card(props) {
     }
 
     var style = {
-        transform: position,
-        rotate: rotate,
+        transform: position + rotate,
         backgroundImage: isCardVisible() ? `url(${image})` : `url(${card_back})`,
         marginLeft: props.card.tapped? "2em" : undefined,
         marginRight: props.card.tapped? "2em" : undefined,
     };
 
     useEffect(() => {
-        async function internal() {
-            var imageUrl = await fetchCardByName(cardRef.current.name);
-            setImage(imageUrl);
-        }
-        internal();
+        fetchCardByName(props.card.name, setImage);
     }, [cardRef.current.name]);
 
     return (
@@ -79,11 +74,7 @@ export function CardShowcase(props) {
     };
 
     useEffect(() => {
-        async function internal() {
-            var imageUrl = await fetchCardByName(props.card.name);
-            setImage(imageUrl);
-        }
-        internal();
+        fetchCardByName(props.card.name, setImage);
     }, []);
 
     return (

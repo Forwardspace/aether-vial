@@ -51,6 +51,80 @@ function App() {
 
   // Various handlers
 
+  function tapCard(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    // Tap the currently dragging card
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        card.tapped = !card.tapped;
+      }
+      return card;
+    });
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function untapAllCards() {
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.location.startsWith("player")) {
+        card.tapped = false;
+      }
+      return card;
+    });
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function flipCardVisibility(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, visibility_override: !card.visibility_override};
+      }
+      return {...card};
+    });
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function deleteCard(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().filter(card => card.id != target);
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function openNewCardModal() {
+    setState({...stateRef.current, isNewCardModalOpen: true});
+  }
+
+  function endCurrentTurn() {
+    setState({...stateRef.current, isEnemyTurn: !stateRef.current.isEnemyTurn});
+    sendEndTurn(peer);
+  }
+
+  function openImportModal() {
+    setState({...stateRef.current, isImportModalOpen: true});
+  }
+
+  function shuffleLibrary() {
+    var libraryShuffled = arrayShuffle(cardsRef.current.filter(card => card.location == "player_library"));
+    var otherCards = cardsRef.current.filter(card => card.location != "player_library");
+
+    for (var i = 0; i < libraryShuffled.length; i++) {
+      libraryShuffled[i].index = i;
+    }
+
+    setCards(otherCards.concat(libraryShuffled));
+    sendCardData(peer, otherCards.concat(libraryShuffled));
+  }
+
   const onDragEnd = ({ active, over }) => {
     if (over == null) {
       return;
@@ -104,55 +178,26 @@ function App() {
 
     if (event.code == "Space") {
       if (event.shiftKey) {
-        // Open the new card modal
-        setState({...stateRef.current, isNewCardModalOpen: true});
-
+        openNewCardModal();
         return;
       }
 
-      // Tap the currently dragging card
-      var newCards = cardsRef.current.slice().map(card => {
-        if (card.id == window.currentlyDragging) {
-          card.tapped = !card.tapped;
-        }
-        return card;
-      });
-      setCards(newCards);
-      sendCardData(peer, newCards);
+      tapCard();
     }
     else if (event.code == "Tab") {
       // Untap all cards belonging to the player
       if (event.shiftKey) {
-        // Flip the card's visibility
-        var newCards = cardsRef.current.slice().map(card => {
-          if (card.id == window.currentlyDragging) {
-            return {...card, visibility_override: !card.visibility_override};
-          }
-          return {...card};
-        });
-
-        setCards(newCards);
-        sendCardData(peer, newCards);
+        flipCardVisibility();
         return;
       }
 
-      var newCards = cardsRef.current.slice().map(card => {
-        if (card.location.startsWith("player")) {
-          card.tapped = false;
-        }
-        return card;
-      });
-      setCards(newCards);
-      sendCardData(peer, newCards);
+      untapAllCards();
     }
     else if (event.code == "Enter") {
-      setState({...stateRef.current, isEnemyTurn: !stateRef.current.isEnemyTurn});
-      sendEndTurn(peer);
+      endCurrentTurn();
     }
     else if (event.code == "Delete") {
-      var newCards = cardsRef.current.slice().filter(card => card.id != window.currentlyDragging);
-      setCards(newCards);
-      sendCardData(peer, newCards);
+      deleteCard();
     }
     else if (event.code == "AltLeft") {
       if (window.currentlyDragging == null) {
@@ -172,6 +217,7 @@ function App() {
       setState({...stateRef.current, isFullAreaViewModalOpen: !stateRef.current.isFullAreaViewModalOpen, fullAreaName: location});
     }
     else if (event.code == "KeyF") {
+      // Spawn fblthp
       var newCards = cardsRef.current.slice().concat({
         id: Math.round(Math.random() * 1000000),
         name: "Fblthp, the Lost", 
@@ -186,19 +232,10 @@ function App() {
       sendCardData(peer, newCards);
     }
     else if (event.code == "KeyS") {
-      // Shuffle the library
-      var libraryShuffled = arrayShuffle(cardsRef.current.filter(card => card.location == "player_library"));
-      var otherCards = cardsRef.current.filter(card => card.location != "player_library");
-
-      for (var i = 0; i < libraryShuffled.length; i++) {
-        libraryShuffled[i].index = i;
-      }
-
-      setCards(otherCards.concat(libraryShuffled));
-      sendCardData(peer, otherCards.concat(libraryShuffled));
+      shuffleLibrary();
     }
     else if (event.code == "KeyI") {
-      setState({...stateRef.current, isImportModalOpen: !stateRef.current.isImportModalOpen});
+      openImportModal();
     }
   };
 

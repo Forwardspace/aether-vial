@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardShowcase } from "../card/Card";
 
-import { useId } from "react";
+import { useId, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
 
 import "./FullAreaViewModal.css";
@@ -12,6 +12,9 @@ export function FullAreaViewModal(props) {
         id: useId(),
         data: { name: props.name }
     });
+
+    var ref = useRef({style: {translate: "0px"}});
+    var scroll = useRef(0);
 
     const style = {
         backgroundColor: isOver ? '#233e1e' : undefined,
@@ -38,11 +41,18 @@ export function FullAreaViewModal(props) {
         }
     }
 
+    function handleScroll(ev) {
+        var delta = ev.deltaY;
+        scroll.current += delta;
+
+        ref.current.style.translate = scroll.current + "px";
+    }
+
     return (
         <div className="fav-modal">
             <div className="fav-modal-content" ref={setNodeRef} style={style}>
                 <h1>{getDisplayName(props.name)}</h1>
-                <div className="fav-cards-container">
+                <div className="fav-cards-container" onWheel={handleScroll} ref={ref}>
                     {relevantCards.map((card, idx) => idx != relevantCards.length - 1? <Card card={{...card, visibility_override: true}} /> : <CardShowcase card={{...card, visibility_override: true}} />)}
                 </div>
             </div>
