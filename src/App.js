@@ -24,14 +24,14 @@ function App() {
 
   // Various game state variables
   var [state, setState] = useState({
-    isConnected: true,
+    isConnected: false,
     isAwaitingConnection: false,
 
     isEnemyTurn: false,
     isNewCardModalOpen: false,
     isFullAreaViewModalOpen: false,
     fullAreaName: "",
-    isImportModalOpen: true,
+    isImportModalOpen: false,
 
     isControlButtonPressed: false
   });
@@ -72,10 +72,19 @@ function App() {
     });
 
     if (stateRef.current.isControlButtonPressed) {
-      var temp = newCards.find(card => card.id == active.id);
-      newCards = newCards.filter(card => card.id != active.id);
-
-      newCards = [temp].concat(newCards);
+      newCards = newCards.map(card => {
+        if (card.location == over.data.current.name) {
+          if (card.id == active.id) {
+            // This card should be on the bottom (index 0)
+            return {...card, index: 0};
+          }
+          else {
+            // Move the card to the top
+            return {...card, index: card.index + 1};
+          }
+        }
+        return card;
+      });
     }
 
     setCards(newCards);
@@ -187,6 +196,9 @@ function App() {
 
       setCards(otherCards.concat(libraryShuffled));
       sendCardData(peer, otherCards.concat(libraryShuffled));
+    }
+    else if (event.code == "KeyI") {
+      setState({...stateRef.current, isImportModalOpen: !stateRef.current.isImportModalOpen});
     }
   };
 

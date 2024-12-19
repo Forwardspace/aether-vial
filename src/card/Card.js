@@ -17,7 +17,7 @@ export function Card(props) {
         id: props.card.id,
     });
 
-    const position = transform? `translate3d(${transform.x}px, ${transform.y}px, 0)` : ``;
+    const position = transform? `translate(${transform.x}px, ${transform.y}px)` : ``;
     const rotate = props.card.tapped? " rotate(90deg)" : " rotate(0deg)";
 
     var [image, setImage] = useState(placeholder);
@@ -34,7 +34,8 @@ export function Card(props) {
     }
 
     var style = {
-        transform: position + rotate,
+        transform: position,
+        rotate: rotate,
         backgroundImage: isCardVisible() ? `url(${image})` : `url(${card_back})`,
         marginLeft: props.card.tapped? "2em" : undefined,
         marginRight: props.card.tapped? "2em" : undefined,

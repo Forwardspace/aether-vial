@@ -9,4 +9,14 @@
     background-size: cover;
 
     transition: transform 50ms ease;
+    transition: scale 150ms ease;
+}
+
+.card:hover {
+    scale: 1.33;
+    z-index: 2;
+}
+
+.card:active {
+    scale: 1;
 }
