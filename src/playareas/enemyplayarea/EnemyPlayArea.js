@@ -30,7 +30,7 @@ export function EnemyPlayArea(props) {
                     </div>
                 </div>
             </div>
-            <CounterArea/>
+            <CounterArea peer={props.peer} state={props.state} setState={props.setState} enemy={true}/>
         </div>
     );
 }

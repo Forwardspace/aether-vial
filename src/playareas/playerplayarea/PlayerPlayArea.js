@@ -30,7 +30,7 @@ export function PlayerPlayArea(props) {
                     <PlayerHand cards={props.cards}/>
                 </div>
             </div>
-            <CounterArea/>
+            <CounterArea peer={props.peer} state={props.state} setState={props.setState} enemy={false}/>
         </div>
     );
 }

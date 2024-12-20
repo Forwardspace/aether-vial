@@ -49,7 +49,18 @@ export function Card(props) {
     }
 
     return (
-        <div ref={setNodeRef} className="card" style={style} {...listeners} {...attributes} onMouseEnter={setHoveredCard} />
+        <div ref={setNodeRef} className="card" style={style} {...listeners} {...attributes} onMouseEnter={setHoveredCard}>
+            { props.card.numPlusOneCounters != 0 && (
+                <div class className="card-counter-area-plus-one">
+                    <p>{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}/{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}</p>
+                </div>
+            )}
+            { props.card.numGenericCounters != 0 && (
+                <div className="card-counter-area-generic">
+                    <p>{props.card.numGenericCounters}</p>
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -82,6 +93,17 @@ export function CardShowcase(props) {
     }, []);
 
     return (
-        <div className="card" style={style} />
+        <div className="card" style={style}>
+            { props.card.numGenericCounters != 0 && (
+                <div className="card-counter-area-generic">
+                    <p>{props.card.numGenericCounters}</p>
+                </div>
+            )}
+            { props.card.numPlusOneCounters != 0 && (
+                <div class name="card-counter-area-plus-one">
+                    <p>{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}/{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}</p>
+                </div>
+            )}
+        </div>
     );
 }

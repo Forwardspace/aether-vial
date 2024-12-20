@@ -15,7 +15,7 @@ export function EnemyHand(props) {
 
     const style = {
         backgroundColor: isOver ? '#233e1e' : undefined,
-        transform: collapsed? "translate(0vw, -22vh)" : "translate(0vw, -5vh)"
+        transform: collapsed? "translate(0vw, -18vh)" : "translate(0vw, -2vh)"
     };
 
     return (

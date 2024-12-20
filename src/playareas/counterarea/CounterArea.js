@@ -1,11 +1,39 @@
 
 import React from 'react';
 
+import { sendCounterData } from '../../netdata/netdata';
+
 import './CounterArea.css';
 
-export function CounterArea() {
-    var [lifeValue, setLifeValue] = React.useState(40);
-    var [taxValue, setTaxValue] = React.useState(0);
+export function CounterArea(props) {
+    var lifeValue = props.enemy ? props.state.current.enemyLife : props.state.current.playerLife;
+    var taxValue = props.enemy ? props.state.current.enemyTax : props.state.current.playerTax;
+
+    function setLifeValue(value) {
+        var newState = { ...props.state.current };
+
+        if (props.enemy) {
+            newState.enemyLife = value;
+        } else {
+            newState.playerLife = value;
+        }
+
+        props.setState(newState);
+        sendCounterData(props.peer, newState);
+    }
+
+    function setTaxValue(value) {
+        var newState = { ...props.state.current };
+
+        if (props.enemy) {
+            newState.enemyTax = value;
+        } else {
+            newState.playerTax = value;
+        }
+
+        props.setState(newState);
+        sendCounterData(props.peer, newState);
+    }
 
     return (
         <div className="counter-area-container">

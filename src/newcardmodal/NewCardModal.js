@@ -16,7 +16,9 @@ export function NewCardModal(props) {
             tapped: false,
             visible: true,
             visibility_override: false,
-            index: props.cards.current.filter(card => card.location == "player_battlefield").length
+            index: props.cards.current.filter(card => card.location == "player_battlefield").length,
+            numGenericCounters: 0,
+            numPlusOneCounters: 0
         })
         
         props.setCards(newCards);

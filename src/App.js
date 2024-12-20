@@ -2,7 +2,7 @@ import { DndContext, closestCenter, pointerWithin } from '@dnd-kit/core';
 import { useEffect, useId, useRef } from "react";
 import { useState } from "react";
 import arrayShuffle from 'array-shuffle';
-import { useContextMenu, Menu, Item, Separator } from "react-contexify";
+import { useContextMenu, Menu, Item, Separator, Submenu } from "react-contexify";
 
 import './App.css';
 import "./PlayArea.css"
@@ -19,8 +19,6 @@ import { MenuBar } from "./menubar/MenuBar.js";
 
 import { Peer } from "peerjs"
 
-var peer = new Peer();
-
 function App() {
   // State list of cards in play
   var [cards, setCards] = useState([]);
@@ -36,8 +34,56 @@ function App() {
     fullAreaName: "",
     isImportModalOpen: false,
 
-    isControlButtonPressed: false
+    isControlButtonPressed: false,
+
+    enemyLife: 20,
+    playerLife: 20,
+    enemyTax: 0,
+    playerTax: 0
   });
+
+  const stateRef = useRef(state);
+  const cardsRef = useRef(cards);
+  stateRef.current = state;
+  cardsRef.current = cards;
+
+  var [peer, setPeer] = useState(null);
+
+  useEffect(() => {
+    var newPeer = new Peer();
+    newPeer.on("connection", (conn) => {
+      setState({...stateRef.current, isAwaitingConnection: false, isConnected: true});
+
+      conn.on("data", (data) => {
+          handleData(data, true);
+      });
+
+      conn.on("close", () => {
+          setState({...stateRef.current, isConnected: false});
+      });
+
+      // Send initial game state to the new connection
+      var enemyIsStartingPlayer = Math.random() > 0.5;
+
+      conn.on("open", () => {
+        var initialState = {
+          messageType: "initialState",
+          isEnemyTurn: enemyIsStartingPlayer
+        }
+
+        conn.send(JSON.stringify(initialState));
+
+        setState({ ...stateRef.current, isEnemyTurn: !enemyIsStartingPlayer });
+
+        // Send (only our) cards to the new connection
+        conn.send(JSON.stringify({
+          messageType: "updateCards",
+          cards: cardsRef.current.filter(card => card.location.startsWith("player"))
+        }));
+      });
+    });
+    setPeer(newPeer);
+  }, []);
 
   function getLastIndex(location) {
     var relevant = cards.filter(card => card.location == location).sort((a, b) => a.index - b.index);
@@ -46,11 +92,6 @@ function App() {
     }
     return relevant[relevant.length - 1].index;
   }
-  
-  const stateRef = useRef(state);
-  const cardsRef = useRef(cards);
-  stateRef.current = state;
-  cardsRef.current = cards;
 
   const { show } = useContextMenu({
     id: "general-menu"
@@ -132,6 +173,68 @@ function App() {
     sendCardData(peer, otherCards.concat(libraryShuffled));
   }
 
+  function addPlusOneCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numPlusOneCounters: card.numPlusOneCounters + 1};
+      }
+      return card;
+    });
+
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function removePlusOneCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numPlusOneCounters: card.numPlusOneCounters - 1};
+      }
+      return card;
+    });
+
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function addGenericCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numGenericCounters: card.numGenericCounters + 1};
+      }
+      return card;
+    });
+    
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function removeGenericCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numGenericCounters: card.numGenericCounters - 1};
+      }
+      return card;
+    });
+
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  ////
+
   const onDragEnd = ({ active, over }) => {
     if (over == null) {
       return;
@@ -145,7 +248,10 @@ function App() {
           return {...card, 
             location: over.data.current.name,
             index: getLastIndex(over.data.current.name) + 1,
-            visibility_override: false
+            visibility_override: false,
+            /* If the card is moved out of the battlefield, reset counters */
+            numGenericCounters: card.location.includes("battlefield")? card.numGenericCounters : 0,
+            numPlusOneCounters: card.location.includes("battlefield")? card.numPlusOneCounters : 0
           };
         }
       }
@@ -232,7 +338,9 @@ function App() {
         tapped: false,
         visible: true, 
         visibility_override: false, 
-        index: cardsRef.current.filter(card => card.location == "player_battlefield").length
+        index: cardsRef.current.filter(card => card.location == "player_battlefield").length,
+        numGenericCounters: 0,
+        numPlusOneCounters: 0
       });
 
       setCards(newCards);
@@ -260,6 +368,7 @@ function App() {
     receiveData(data, isHost, stateRef.current, setState, cardsRef.current, setCards);
   }
 
+
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown, false);
     document.addEventListener("keyup", handleKeyUp, false);
@@ -276,8 +385,8 @@ function App() {
       <MenuBar />
       <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} autoScroll={false}>
         { state.isFullAreaViewModalOpen && <FullAreaViewModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} name={state.fullAreaName}/> }
-        <EnemyPlayArea isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} ></EnemyPlayArea>
-        <PlayerPlayArea isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards}></PlayerPlayArea>
+        <EnemyPlayArea peer={peer} isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} state={stateRef} setState={setState}></EnemyPlayArea>
+        <PlayerPlayArea peer={peer} isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} state={stateRef} setState={setState}></PlayerPlayArea>
       </DndContext>
 
       <Menu id="general-menu" className="general-menu">
@@ -285,6 +394,15 @@ function App() {
         <Item onClick={() => {flipCardVisibility(window.hovering)}}>Flip visibility</Item>
         <Item onClick={() => {deleteCard(window.hovering)}}>Delete</Item>
         <Item onClick={openNewCardModal}>Spawn new card</Item>
+        <Separator />
+        <Submenu label="+1/+1 counters">
+          <Item onClick={() => {addPlusOneCounter(window.hovering)}}>Add +1/+1</Item>
+          <Item onClick={() => {removePlusOneCounter(window.hovering)}}>Remove +1/+1</Item>
+        </Submenu>
+        <Submenu label="Generic counters">
+          <Item onClick={() => {addGenericCounter(window.hovering)}}>Add counter</Item>
+          <Item onClick={() => {removeGenericCounter(window.hovering)}}>Remove counter</Item>
+        </Submenu>
         <Separator />
         <Item onClick={untapAllCards}>Untap all cards</Item>
         <Item onClick={endCurrentTurn}>End turn</Item>

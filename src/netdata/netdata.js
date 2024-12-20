@@ -3,13 +3,16 @@ export function receiveData(data, isHost, state, setState, cards, setCards) {
 
     switch (json.messageType) {
         case "initialState":
-            setState({...state, isEnemyTurn: !json.isEnemyTurn, isConnected: true});
+            setState({...state, isEnemyTurn: json.isEnemyTurn, isConnected: true});
             break;
         case "updateCards":
             setCards(json.cards);
             break;
         case "endTurn":
             setState({...state, isEnemyTurn: !state.isEnemyTurn});
+            break;
+        case "updateCounters":
+            setState({ ...state, playerLife: json.counters.playerLife, playerTax: json.counters.playerTax, enemyLife: json.counters.enemyLife, enemyTax: json.counters.enemyTax });
             break;
     }
 }
@@ -26,5 +29,18 @@ export function sendCardData(peer, cards) {
 export function sendEndTurn(peer) {
     Object.keys(peer.connections).map((key) => peer.connections[key][0].send(JSON.stringify({
         messageType: "endTurn"
+    })));
+}
+
+export function sendCounterData(peer, state) {
+    Object.keys(peer.connections).map((key) => peer.connections[key][0].send(JSON.stringify({
+        messageType: "updateCounters",
+        /* Swap player and enemy around */
+        counters: {
+            enemyLife: state.playerLife,
+            enemyTax: state.playerTax,
+            playerLife: state.enemyLife,
+            playerTax: state.enemyTax
+        }
     })));
 }
