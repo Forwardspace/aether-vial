@@ -14,6 +14,10 @@ export function WelcomeModal(props) {
                 props.handleData(data, true);
             });
 
+            conn.on("close", () => {
+                props.setState({...props.state.current, isConnected: false});
+            });
+
             // Send initial game state to the new connection
             var enemyIsStartingPlayer = Math.random() > 0.5;
 
@@ -40,6 +44,10 @@ export function WelcomeModal(props) {
         connection.on("open", () => {
             connection.on("data", (data) => {
                 props.handleData(data, false);
+            });
+
+            connection.on("close", () => {
+                props.setState({...props.state.current, isConnected: false});
             });
         })
     }

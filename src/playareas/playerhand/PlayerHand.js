@@ -15,7 +15,7 @@ export function PlayerHand(props) {
 
     const style = {
         backgroundColor: isOver ? '#233e1e' : undefined,
-        transform: collapsed? "translate(0vw, 12vh)" : undefined,
+        transform: collapsed? "translate(0vw, 16vh)" : "translate(0vw, -5vh)"
     };
 
     return (

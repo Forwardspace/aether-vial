@@ -1,10 +1,12 @@
-import { DndContext, rectIntersection } from '@dnd-kit/core';
+import { DndContext, closestCenter, pointerWithin } from '@dnd-kit/core';
 import { useEffect, useId, useRef } from "react";
 import { useState } from "react";
 import arrayShuffle from 'array-shuffle';
+import { useContextMenu, Menu, Item, Separator } from "react-contexify";
 
 import './App.css';
 import "./PlayArea.css"
+import "react-contexify/dist/ReactContexify.css";
 
 import { EnemyPlayArea } from "./playareas/enemyplayarea/EnemyPlayArea.js"
 import { PlayerPlayArea } from "./playareas/playerplayarea/PlayerPlayArea.js"
@@ -13,6 +15,7 @@ import { NewCardModal } from "./newcardmodal/NewCardModal.js"
 import { FullAreaViewModal } from "./fullareaviewmodal/FullAreaViewModal.js"
 import { ImportModal } from "./importmodal/ImportModal.js"
 import { receiveData, sendCardData, sendEndTurn } from "./netdata/netdata.js"
+import { MenuBar } from "./menubar/MenuBar.js";
 
 import { Peer } from "peerjs"
 
@@ -48,6 +51,10 @@ function App() {
   const cardsRef = useRef(cards);
   stateRef.current = state;
   cardsRef.current = cards;
+
+  const { show } = useContextMenu({
+    id: "general-menu"
+  });
 
   // Various handlers
 
@@ -245,6 +252,10 @@ function App() {
     }
   }
 
+  function handleContextMenu(event) {
+    show({event: event});
+  }
+
   function handleData(data, isHost) {
     receiveData(data, isHost, stateRef.current, setState, cardsRef.current, setCards);
   }
@@ -258,15 +269,30 @@ function App() {
   // Render the app
 
   return (
-    <div className="App">
+    <div className="App" onContextMenu={handleContextMenu}>
       { !state.isConnected && <WelcomeModal peer={peer} state={stateRef} setState={setState} handleData={handleData} cards={cardsRef}/> }
       { state.isNewCardModalOpen && <NewCardModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} sendCardData={sendCardData.bind(this, peer)}/> }
       { state.isImportModalOpen && <ImportModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} sendCardData={sendCardData.bind(this, peer)}/> }
+      <MenuBar />
       <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} autoScroll={false}>
         { state.isFullAreaViewModalOpen && <FullAreaViewModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} name={state.fullAreaName}/> }
         <EnemyPlayArea isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} ></EnemyPlayArea>
         <PlayerPlayArea isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards}></PlayerPlayArea>
       </DndContext>
+
+      <Menu id="general-menu" className="general-menu">
+        <Item onClick={() => {tapCard(window.hovering)}}>Tap/Untap</Item>
+        <Item onClick={() => {flipCardVisibility(window.hovering)}}>Flip visibility</Item>
+        <Item onClick={() => {deleteCard(window.hovering)}}>Delete</Item>
+        <Item onClick={openNewCardModal}>Spawn new card</Item>
+        <Separator />
+        <Item onClick={untapAllCards}>Untap all cards</Item>
+        <Item onClick={endCurrentTurn}>End turn</Item>
+        <Item onClick={shuffleLibrary}>Shuffle library</Item>
+        <Separator />
+        <Item disabled>Spawn Fblthp - F</Item>
+        <Item onClick={openImportModal}>Import deck</Item>
+      </Menu>
     </div>
   );
 }

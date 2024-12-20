@@ -1,10 +1,7 @@
 
 import placeholder from "../res/placeholder.jpg";
 
-import { throttle } from "throttle-debounce";
-
 const queue = []
-var runningQueue = false;
 
 export function fetchCardByName(name, setImage) {
     queue.push({name, setImage})

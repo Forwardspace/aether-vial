@@ -44,8 +44,12 @@ export function Card(props) {
         fetchCardByName(props.card.name, setImage);
     }, [cardRef.current.name]);
 
+    function setHoveredCard() {
+        window.hovering = cardRef.current.id;
+    }
+
     return (
-        <div ref={setNodeRef} className="card" style={style} {...listeners} {...attributes} />
+        <div ref={setNodeRef} className="card" style={style} {...listeners} {...attributes} onMouseEnter={setHoveredCard} />
     );
 }
 
