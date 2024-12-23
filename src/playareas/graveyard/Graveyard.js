@@ -15,7 +15,6 @@ export function Graveyard(props) {
         filter: relevantCards.length > 1? "drop-shadow(4px 12px 0px #000000)" : undefined
     };
 
-
     return (
         <div style={style} className="play-area-graveyard" ref={setNodeRef}>
             { relevantCards.length == 0 ? (<p>Graveyard</p>) : <Card card={relevantCards[relevantCards.length - 1]} style={style}></Card> }

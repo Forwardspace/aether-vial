@@ -1,0 +1,79 @@
+.menu-bar {
+    position: relative;
+    display: flex;
+    z-index: 10;
+    flex-direction: row;
+    width: 100%;
+    height: 3.5vh;
+
+    background-color: rgb(26, 26, 26);
+
+    justify-content: start;
+    align-items: center;
+
+    filter: drop-shadow(-6px 22px 31px #000000);
+    margin-bottom: 1vh;
+    padding-left: 5vw;
+    padding-top: 0.33vh;
+    padding-bottom: 0.33vh;
+}
+
+.menu-button {
+    width: 4.5vw;
+    height: 80%;
+    margin-right: 0.5vw;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    padding: 0px;
+    opacity: 75%;
+}
+
+.menu-button:hover {
+    opacity: 90%;
+}
+
+.menu-button:active {
+    opacity: 100%;
+}
+
+.new-game-button {
+    background-color: #043095;
+}
+
+.new-game-button:hover {
+    background-color: #042b7f;
+}
+
+.import-button {
+    background-color: #950808;
+}
+
+.import-button:hover {
+    background-color: #8a0707;
+}
+
+.load-game-button {
+    background-color: #124e1c;
+}
+
+.load-game-button:hover {
+    background-color: #0f3f16;
+}
+
+.save-game-button {
+    background-color: #677806;
+}
+
+.save-game-button:hover {
+    background-color: #5b6a06;
+}
+
+.disconnect-button {
+    margin-left: 3vw;
+    background-color: #a72828;
+}
+
+.disconnect-button:hover {
+    background-color: #871515;
+}

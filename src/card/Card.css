@@ -1,15 +1,45 @@
 .card {
+    position: relative;
     background-color: black;
     width: 15vh;
     height: 21vh;
     border-radius: 5%;
     margin: 0.15vh;
     z-index: 1;
+    opacity: 1;
 
     background-size: cover;
 
     transition: transform 50ms ease;
     transition: scale 150ms ease;
+}
+
+.card-counter-area-generic {
+    position: fixed;
+    top: 2vh;
+    right: 1vh;
+    height: 4vh;
+    width: 3vh;
+    
+    color: black;
+    -webkit-text-stroke: 1px white;
+    font-size: 3vh;
+    font-weight: 600;
+    filter: drop-shadow(5px 5px 10px #000000);
+}
+
+.card-counter-area-plus-one {
+    position: fixed;
+    top: 5vh;
+    right: 6vh;
+    height: 4vh;
+    width: 3vh;
+
+    color: black;
+    -webkit-text-stroke: 1px white;
+    font-size: 3vh;
+    font-weight: 600;
+    filter: drop-shadow(5px 5px 10px #000000);
 }
 
 .card:hover {

@@ -1,4 +1,4 @@
-import { Card } from "../../card/Card";
+import { Card, CardShowcase } from "../../card/Card";
 import { useId } from "react";
 import { useDroppable } from "@dnd-kit/core";
 

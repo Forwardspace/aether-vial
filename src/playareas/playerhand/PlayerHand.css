@@ -7,7 +7,7 @@ body {
 
     align-self: center;
     min-width: 60%;
-    min-height: 22vh;
+    height: 22vh;
     position: absolute;
     bottom: 0;
 
@@ -20,5 +20,5 @@ body {
 }
 
 .hand-card-container {
-    
+    padding-bottom: 4vh;
 }

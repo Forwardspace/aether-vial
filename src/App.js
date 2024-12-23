@@ -1,10 +1,12 @@
-import { DndContext, rectIntersection } from '@dnd-kit/core';
-import { useEffect, useId, useRef } from "react";
+import { DndContext } from '@dnd-kit/core';
+import { useEffect, useRef } from "react";
 import { useState } from "react";
 import arrayShuffle from 'array-shuffle';
+import { useContextMenu, Menu, Item, Separator, Submenu } from "react-contexify";
 
 import './App.css';
 import "./PlayArea.css"
+import "react-contexify/dist/ReactContexify.css";
 
 import { EnemyPlayArea } from "./playareas/enemyplayarea/EnemyPlayArea.js"
 import { PlayerPlayArea } from "./playareas/playerplayarea/PlayerPlayArea.js"
@@ -13,10 +15,9 @@ import { NewCardModal } from "./newcardmodal/NewCardModal.js"
 import { FullAreaViewModal } from "./fullareaviewmodal/FullAreaViewModal.js"
 import { ImportModal } from "./importmodal/ImportModal.js"
 import { receiveData, sendCardData, sendEndTurn } from "./netdata/netdata.js"
+import { MenuBar } from "./menubar/MenuBar.js";
 
 import { Peer } from "peerjs"
-
-var peer = new Peer();
 
 function App() {
   // State list of cards in play
@@ -33,8 +34,68 @@ function App() {
     fullAreaName: "",
     isImportModalOpen: false,
 
-    isControlButtonPressed: false
+    isControlButtonPressed: false,
+
+    enemyLife: 20,
+    playerLife: 20,
+    enemyTax: 0,
+    playerTax: 0
   });
+
+  const stateRef = useRef(state);
+  const cardsRef = useRef(cards);
+  stateRef.current = state;
+  cardsRef.current = cards;
+
+  var [peer, setPeer] = useState(null);
+
+  function createNewPeer() {
+    var newPeer = new Peer();
+    newPeer.on("connection", (conn) => {
+      setState({...stateRef.current, isAwaitingConnection: false, isConnected: true});
+
+      conn.on("data", (data) => {
+          handleData(data, true);
+      });
+
+      conn.on("close", () => {
+          setState({...stateRef.current, isConnected: false});
+      });
+
+      // Send initial game state to the new connection
+      var enemyIsStartingPlayer = Math.random() > 0.5;
+
+      conn.on("open", () => {
+        var initialState = {
+          messageType: "initialState",
+          isEnemyTurn: enemyIsStartingPlayer
+        }
+
+        conn.send(JSON.stringify(initialState));
+
+        setState({ ...stateRef.current, isEnemyTurn: !enemyIsStartingPlayer });
+
+        // Send (only our) cards to the new connection
+        conn.send(JSON.stringify({
+          messageType: "updateCards",
+          cards: cardsRef.current.filter(card => card.location.startsWith("player"))
+        }));
+      });
+    });
+    setPeer(newPeer);
+  }
+
+  useEffect(() => {
+    createNewPeer();
+  }, []);
+
+  var peerRef = useRef(peer);
+  peerRef.current = peer;
+  function disconnect() {
+    peerRef.current.disconnect();
+    setState({...stateRef.current, isConnected: false});
+    createNewPeer();
+  }
 
   function getLastIndex(location) {
     var relevant = cards.filter(card => card.location == location).sort((a, b) => a.index - b.index);
@@ -43,11 +104,10 @@ function App() {
     }
     return relevant[relevant.length - 1].index;
   }
-  
-  const stateRef = useRef(state);
-  const cardsRef = useRef(cards);
-  stateRef.current = state;
-  cardsRef.current = cards;
+
+  const { show } = useContextMenu({
+    id: "general-menu"
+  });
 
   // Various handlers
 
@@ -125,6 +185,82 @@ function App() {
     sendCardData(peer, otherCards.concat(libraryShuffled));
   }
 
+  function toggleFullAreaViewModal(cardId) {
+    if (stateRef.current.isFullAreaViewModalOpen) {
+      setState({...stateRef.current, isFullAreaViewModalOpen: false});
+      return;
+    }
+
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var location = cardsRef.current.find(card => card.id == target).location;
+
+    setState({...stateRef.current, isFullAreaViewModalOpen: !stateRef.current.isFullAreaViewModalOpen, fullAreaName: location});
+  }
+
+  function addPlusOneCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numPlusOneCounters: card.numPlusOneCounters + 1};
+      }
+      return card;
+    });
+
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function removePlusOneCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numPlusOneCounters: card.numPlusOneCounters - 1};
+      }
+      return card;
+    });
+
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function addGenericCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numGenericCounters: card.numGenericCounters + 1};
+      }
+      return card;
+    });
+    
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function removeGenericCounter(cardId) {
+    var target = window.currentlyDragging? window.currentlyDragging : cardId;
+    if (!target) return;
+
+    var newCards = cardsRef.current.slice().map(card => {
+      if (card.id == target) {
+        return {...card, numGenericCounters: card.numGenericCounters - 1};
+      }
+      return card;
+    });
+
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  ////
+
   const onDragEnd = ({ active, over }) => {
     if (over == null) {
       return;
@@ -138,7 +274,10 @@ function App() {
           return {...card, 
             location: over.data.current.name,
             index: getLastIndex(over.data.current.name) + 1,
-            visibility_override: false
+            visibility_override: false,
+            /* If the card is moved out of the battlefield, reset counters */
+            numGenericCounters: card.location.includes("battlefield")? card.numGenericCounters : 0,
+            numPlusOneCounters: card.location.includes("battlefield")? card.numPlusOneCounters : 0
           };
         }
       }
@@ -200,21 +339,7 @@ function App() {
       deleteCard();
     }
     else if (event.code == "AltLeft") {
-      if (window.currentlyDragging == null) {
-        if (stateRef.current.isFullAreaViewModalOpen) {
-          setState({...stateRef.current, isFullAreaViewModalOpen: false});
-        }
-
-        return;
-      }
-
-      var location = cardsRef.current.find(card => card.id == window.currentlyDragging).location;
-
-      if (!location.includes("graveyard") && !location.includes("exile") && !location.includes("library")) {
-        return;
-      }
-
-      setState({...stateRef.current, isFullAreaViewModalOpen: !stateRef.current.isFullAreaViewModalOpen, fullAreaName: location});
+      toggleFullAreaViewModal();
     }
     else if (event.code == "KeyF") {
       // Spawn fblthp
@@ -225,7 +350,9 @@ function App() {
         tapped: false,
         visible: true, 
         visibility_override: false, 
-        index: cardsRef.current.filter(card => card.location == "player_battlefield").length
+        index: cardsRef.current.filter(card => card.location == "player_battlefield").length,
+        numGenericCounters: 0,
+        numPlusOneCounters: 0
       });
 
       setCards(newCards);
@@ -245,9 +372,14 @@ function App() {
     }
   }
 
+  function handleContextMenu(event) {
+    show({event: event});
+  }
+
   function handleData(data, isHost) {
     receiveData(data, isHost, stateRef.current, setState, cardsRef.current, setCards);
   }
+
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown, false);
@@ -258,15 +390,39 @@ function App() {
   // Render the app
 
   return (
-    <div className="App">
+    <div className="App" onContextMenu={handleContextMenu}>
       { !state.isConnected && <WelcomeModal peer={peer} state={stateRef} setState={setState} handleData={handleData} cards={cardsRef}/> }
       { state.isNewCardModalOpen && <NewCardModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} sendCardData={sendCardData.bind(this, peer)}/> }
       { state.isImportModalOpen && <ImportModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} sendCardData={sendCardData.bind(this, peer)}/> }
+      <MenuBar disconnect={disconnect} />
       <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} autoScroll={false}>
         { state.isFullAreaViewModalOpen && <FullAreaViewModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} name={state.fullAreaName}/> }
-        <EnemyPlayArea isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} ></EnemyPlayArea>
-        <PlayerPlayArea isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards}></PlayerPlayArea>
+        <EnemyPlayArea peer={peer} isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} state={stateRef} setState={setState}></EnemyPlayArea>
+        <PlayerPlayArea peer={peer} isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} state={stateRef} setState={setState}></PlayerPlayArea>
       </DndContext>
+
+      <Menu id="general-menu" className="general-menu">
+        <Item onClick={() => {tapCard(window.hovering)}}>Tap/Untap</Item>
+        <Item onClick={() => {flipCardVisibility(window.hovering)}}>Flip visibility</Item>
+        <Item onClick={() => {deleteCard(window.hovering)}}>Delete</Item>
+        <Item onClick={openNewCardModal}>Spawn new card</Item>
+        <Separator />
+        <Submenu label="+1/+1 counters">
+          <Item onClick={() => {addPlusOneCounter(window.hovering)}}>Add +1/+1</Item>
+          <Item onClick={() => {removePlusOneCounter(window.hovering)}}>Remove +1/+1</Item>
+        </Submenu>
+        <Submenu label="Generic counters">
+          <Item onClick={() => {addGenericCounter(window.hovering)}}>Add counter</Item>
+          <Item onClick={() => {removeGenericCounter(window.hovering)}}>Remove counter</Item>
+        </Submenu>
+        <Separator />
+        <Item onClick={untapAllCards}>Untap all cards</Item>
+        <Item onClick={endCurrentTurn}>End turn</Item>
+        <Item onClick={shuffleLibrary}>Shuffle library</Item>
+        <Item onClick={() => {toggleFullAreaViewModal(window.hovering)}}>Toggle Full Area View</Item>
+        <Separator />
+        <Item onClick={openImportModal}>Import deck</Item>
+      </Menu>
     </div>
   );
 }

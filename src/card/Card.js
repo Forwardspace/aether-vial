@@ -44,8 +44,23 @@ export function Card(props) {
         fetchCardByName(props.card.name, setImage);
     }, [cardRef.current.name]);
 
+    function setHoveredCard() {
+        window.hovering = cardRef.current.id;
+    }
+
     return (
-        <div ref={setNodeRef} className="card" style={style} {...listeners} {...attributes} />
+        <div ref={setNodeRef} className="card" style={style} {...listeners} {...attributes} onMouseEnter={setHoveredCard}>
+            { props.card.numPlusOneCounters != 0 && (
+                <div class className="card-counter-area-plus-one">
+                    <p>{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}/{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}</p>
+                </div>
+            )}
+            { props.card.numGenericCounters != 0 && (
+                <div className="card-counter-area-generic">
+                    <p>{props.card.numGenericCounters}</p>
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -68,6 +83,7 @@ export function CardShowcase(props) {
     var [image, setImage] = useState(null);
 
     var style = {
+        rotation: props.card.tapped? "90deg" : "0deg",
         backgroundImage: isCardVisible() ? `url(${image})` : `url(${card_back})`,
         marginLeft: props.card.tapped? "2em" : undefined,
         marginRight: props.card.tapped? "2em" : undefined,
@@ -78,6 +94,17 @@ export function CardShowcase(props) {
     }, []);
 
     return (
-        <div className="card" style={style} />
+        <div className="card" style={style}>
+            { props.card.numGenericCounters != 0 && (
+                <div className="card-counter-area-generic">
+                    <p>{props.card.numGenericCounters}</p>
+                </div>
+            )}
+            { props.card.numPlusOneCounters != 0 && (
+                <div class name="card-counter-area-plus-one">
+                    <p>{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}/{props.card.numPlusOneCounters > 0? '+':''}{props.card.numPlusOneCounters}</p>
+                </div>
+            )}
+        </div>
     );
 }

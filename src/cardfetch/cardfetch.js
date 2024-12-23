@@ -1,12 +1,15 @@
 
 import placeholder from "../res/placeholder.jpg";
 
-import { throttle } from "throttle-debounce";
-
-const queue = []
-var runningQueue = false;
+var queue = []
+var cache = {}
 
 export function fetchCardByName(name, setImage) {
+    if (cache[name] != undefined) {
+        setImage(cache[name]);
+        return;
+    }
+
     queue.push({name, setImage})
     
     return;
@@ -25,5 +28,5 @@ export function fetchCardByNameNonThrottled(name, setImage) {
     return fetch(`https://api.scryfall.com/cards/named?fuzzy=${name}`)
         .then(response => response.json())
         .then(data => data.image_uris != undefined ? data.image_uris.normal : placeholder)
-        .then(url => { setImage(url); })
+        .then(url => { setImage(url); cache[name] = url; });
 }

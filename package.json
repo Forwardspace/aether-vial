@@ -9,11 +9,9 @@
     "cra-template": "1.2.0",
     "peerjs": "^1.5.4",
     "react": "^19.0.0",
-    "react-contextify": "^0.1.0",
+    "react-contexify": "^6.0.0",
     "react-dom": "^19.0.0",
-    "react-scripts": "5.0.1",
-    "throttle-debounce": "^5.0.2",
-    "use-debounce": "^10.0.4"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

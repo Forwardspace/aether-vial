@@ -26,7 +26,9 @@ export function ImportModal(props) {
                     tapped: false,
                     visible: true,
                     visibility_override: false,
-                    index: props.cards.current.filter(card => card.location == "player_hand").length
+                    index: props.cards.current.filter(card => card.location == "player_hand").length,
+                    numGenericCounters: 0,
+                    numPlusOneCounters: 0
                 });
             }
         }

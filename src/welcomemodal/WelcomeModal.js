@@ -7,31 +7,6 @@ export function WelcomeModal(props) {
 
     function onClickHost() {
         props.setState({...props.state.current, isAwaitingConnection: true});
-        props.peer.on("connection", (conn) => {
-            props.setState({...props.state.current, isAwaitingConnection: false, isConnected: true});
-
-            conn.on("data", (data) => {
-                props.handleData(data, true);
-            });
-
-            // Send initial game state to the new connection
-            var enemyIsStartingPlayer = Math.random() > 0.5;
-
-            conn.on("open", () => {
-                conn.send(JSON.stringify({
-                    messageType: "initialState",
-                    isEnemyTurn: enemyIsStartingPlayer,
-                }));
-
-                props.setState({...props.state.current, isEnemyTurn: !enemyIsStartingPlayer});
-
-                // Send (only our) cards to the new connection
-                conn.send(JSON.stringify({
-                    messageType: "updateCards",
-                    cards: props.cards.current.filter(card => card.location.startsWith("player"))
-                }));
-            });
-        });
     }
 
     function onClickJoin() {
@@ -40,6 +15,10 @@ export function WelcomeModal(props) {
         connection.on("open", () => {
             connection.on("data", (data) => {
                 props.handleData(data, false);
+            });
+
+            connection.on("close", () => {
+                props.setState({...props.state.current, isConnected: false});
             });
         })
     }

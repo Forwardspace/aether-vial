@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 
-import { Card } from "../../card/Card";
+import { Card, CardShowcase } from "../../card/Card";
 
 import "./EnemyHand.css";
 
@@ -15,7 +15,7 @@ export function EnemyHand(props) {
 
     const style = {
         backgroundColor: isOver ? '#233e1e' : undefined,
-        transform: collapsed? "translate(0vw, -12vh)" : undefined,
+        transform: collapsed? "translate(0vw, -18vh)" : "translate(0vw, -2vh)"
     };
 
     return (
@@ -23,7 +23,7 @@ export function EnemyHand(props) {
             {
                 props.cards.current.filter(card => card.location == "enemy_hand").sort((a, b) => a.index - b.index).map(card => (
                     <div className="hand-card-container">
-                        <Card card={card}></Card>
+                        {props.state.current.isFullAreaViewModalOpen? <CardShowcase card={card}/> : <Card card={card}/>}
                     </div>
                 ))
             }
