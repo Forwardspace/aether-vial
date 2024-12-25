@@ -109,6 +109,10 @@ function App() {
     id: "general-menu"
   });
 
+  function anyModalIsOpen() {
+    return stateRef.current.isNewCardModalOpen || stateRef.current.isImportModalOpen;
+  }
+
   // Various handlers
 
   function tapCard(cardId) {
@@ -140,6 +144,7 @@ function App() {
   function flipCardVisibility(cardId) {
     var target = window.currentlyDragging? window.currentlyDragging : cardId;
     if (!target) return;
+    if (anyModalIsOpen()) return;
 
     var newCards = cardsRef.current.slice().map(card => {
       if (card.id == target) {
@@ -154,6 +159,7 @@ function App() {
   function deleteCard(cardId) {
     var target = window.currentlyDragging? window.currentlyDragging : cardId;
     if (!target) return;
+    if (anyModalIsOpen()) return;
 
     var newCards = cardsRef.current.slice().filter(card => card.id != target);
     setCards(newCards);
@@ -161,19 +167,27 @@ function App() {
   }
 
   function openNewCardModal() {
+    if (anyModalIsOpen()) return;
+    
     setState({...stateRef.current, isNewCardModalOpen: true});
   }
 
   function endCurrentTurn() {
+    if (anyModalIsOpen()) return;
+
     setState({...stateRef.current, isEnemyTurn: !stateRef.current.isEnemyTurn});
     sendEndTurn(peer);
   }
 
   function openImportModal() {
+    if (anyModalIsOpen()) return;
+
     setState({...stateRef.current, isImportModalOpen: true});
   }
 
   function shuffleLibrary() {
+    if (anyModalIsOpen()) return;
+
     var libraryShuffled = arrayShuffle(cardsRef.current.filter(card => card.location == "player_library"));
     var otherCards = cardsRef.current.filter(card => card.location != "player_library");
 
@@ -190,6 +204,7 @@ function App() {
       setState({...stateRef.current, isFullAreaViewModalOpen: false});
       return;
     }
+    if (anyModalIsOpen()) return;
 
     var target = window.currentlyDragging? window.currentlyDragging : cardId;
     if (!target) return;
@@ -202,6 +217,7 @@ function App() {
   function addPlusOneCounter(cardId) {
     var target = window.currentlyDragging? window.currentlyDragging : cardId;
     if (!target) return;
+    if (anyModalIsOpen()) return;
 
     var newCards = cardsRef.current.slice().map(card => {
       if (card.id == target) {
@@ -217,6 +233,7 @@ function App() {
   function removePlusOneCounter(cardId) {
     var target = window.currentlyDragging? window.currentlyDragging : cardId;
     if (!target) return;
+    if (anyModalIsOpen()) return;
 
     var newCards = cardsRef.current.slice().map(card => {
       if (card.id == target) {
@@ -232,6 +249,7 @@ function App() {
   function addGenericCounter(cardId) {
     var target = window.currentlyDragging? window.currentlyDragging : cardId;
     if (!target) return;
+    if (anyModalIsOpen()) return;
 
     var newCards = cardsRef.current.slice().map(card => {
       if (card.id == target) {
@@ -247,12 +265,33 @@ function App() {
   function removeGenericCounter(cardId) {
     var target = window.currentlyDragging? window.currentlyDragging : cardId;
     if (!target) return;
+    if (anyModalIsOpen()) return;
 
     var newCards = cardsRef.current.slice().map(card => {
       if (card.id == target) {
         return {...card, numGenericCounters: card.numGenericCounters - 1};
       }
       return card;
+    });
+
+    setCards(newCards);
+    sendCardData(peer, newCards);
+  }
+
+  function spawnFblthp() {
+    if (anyModalIsOpen()) return;
+
+    // Spawn fblthp
+    var newCards = cardsRef.current.slice().concat({
+      id: Math.round(Math.random() * 1000000),
+      name: "Fblthp, the Lost",
+      location: "player_battlefield",
+      tapped: false,
+      visible: true,
+      visibility_override: false,
+      index: cardsRef.current.filter(card => card.location == "player_battlefield").length,
+      numGenericCounters: 0,
+      numPlusOneCounters: 0
     });
 
     setCards(newCards);
@@ -342,21 +381,7 @@ function App() {
       toggleFullAreaViewModal();
     }
     else if (event.code == "KeyF") {
-      // Spawn fblthp
-      var newCards = cardsRef.current.slice().concat({
-        id: Math.round(Math.random() * 1000000),
-        name: "Fblthp, the Lost", 
-        location: "player_battlefield", 
-        tapped: false,
-        visible: true, 
-        visibility_override: false, 
-        index: cardsRef.current.filter(card => card.location == "player_battlefield").length,
-        numGenericCounters: 0,
-        numPlusOneCounters: 0
-      });
-
-      setCards(newCards);
-      sendCardData(peer, newCards);
+      spawnFblthp();
     }
     else if (event.code == "KeyS") {
       shuffleLibrary();
@@ -394,7 +419,7 @@ function App() {
       { !state.isConnected && <WelcomeModal peer={peer} state={stateRef} setState={setState} handleData={handleData} cards={cardsRef}/> }
       { state.isNewCardModalOpen && <NewCardModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} sendCardData={sendCardData.bind(this, peer)}/> }
       { state.isImportModalOpen && <ImportModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} sendCardData={sendCardData.bind(this, peer)}/> }
-      <MenuBar disconnect={disconnect} />
+      <MenuBar disconnect={disconnect} state={stateRef} cards={cardsRef} setState={setState} setCards={setCards} peer={peer}/>
       <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} autoScroll={false}>
         { state.isFullAreaViewModalOpen && <FullAreaViewModal state={stateRef} setState={setState} cards={cardsRef} setCards={setCards} name={state.fullAreaName}/> }
         <EnemyPlayArea peer={peer} isEnemyTurn={state.isEnemyTurn} cards={cardsRef} setCards={setCards} state={stateRef} setState={setState}></EnemyPlayArea>
