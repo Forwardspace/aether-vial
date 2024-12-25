@@ -14,6 +14,10 @@ export function receiveData(data, isHost, state, setState, cards, setCards) {
         case "updateCounters":
             setState({ ...state, playerLife: json.counters.playerLife, playerTax: json.counters.playerTax, enemyLife: json.counters.enemyLife, enemyTax: json.counters.enemyTax });
             break;
+        case "newGame":
+            setCards([]);
+            setState({ ...state, playerLife: 20, enemyLife: 20, playerTax: 0, enemyTax: 0 });
+            break;
     }
 }
 
@@ -42,5 +46,11 @@ export function sendCounterData(peer, state) {
             playerLife: state.enemyLife,
             playerTax: state.enemyTax
         }
+    })));
+}
+
+export function sendNewGameMessage(peer) {
+    Object.keys(peer.connections).map((key) => peer.connections[key][0].send(JSON.stringify({
+        messageType: "newGame"
     })));
 }
