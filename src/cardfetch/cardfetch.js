@@ -26,7 +26,7 @@ var id = setInterval(() => {
 
 export function fetchCardByNameNonThrottled(name, setImage) {
     function getCardImageURIFromData(data) {
-        if (data.card_faces != undefined) {
+        if (data.card_faces != undefined && data.image_uris == undefined) {
             // Multi-faced card, select proper face
             for (var face of data.card_faces) {
                 if (face.name == name) {
