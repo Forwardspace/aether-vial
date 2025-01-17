@@ -25,8 +25,21 @@ var id = setInterval(() => {
 }, 100);
 
 export function fetchCardByNameNonThrottled(name, setImage) {
+    function getCardImageURIFromData(data) {
+        if (data.card_faces != undefined) {
+            // Multi-faced card, select proper face
+            for (var face of data.card_faces) {
+                if (face.name == name) {
+                    return face.image_uris.normal;
+                }
+            }
+            return placeholder;
+        }
+        return data.image_uris.normal != undefined ? data.image_uris.normal : placeholder;
+    }
+
     return fetch(`https://api.scryfall.com/cards/named?fuzzy=${name}`)
         .then(response => response.json())
-        .then(data => data.image_uris != undefined ? data.image_uris.normal : placeholder)
+        .then(data => getCardImageURIFromData(data))
         .then(url => { setImage(url); cache[name] = url; });
 }
