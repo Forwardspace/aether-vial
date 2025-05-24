@@ -1,0 +1,100 @@
+.play-area-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(21, 21, 21);
+}
+
+.play-area {
+    display: flex;
+    flex-direction: row;
+    width: 92%;
+    margin-right: 4%;
+    height: 90%;
+    margin-top: 10%;
+    margin-bottom: 10%;
+    background-color: rgb(40, 40, 40);
+    filter: drop-shadow(-5px 5px 10px #000000);
+}
+
+.battlefield-area, .other-zones {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.battlefield-area {
+    height: 100%;
+    width: 80%;
+}
+
+.other-zones {
+    width: 11%;
+    background-color: rgb(47, 47, 47);
+}
+
+.graveyard, .exile, .library, .command-zone, .battlefield {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    
+    height: 22vh;
+}
+
+.graveyard, .exile, .library, .command-zone {
+    width: 16vh;
+    border: 1px black dashed;
+    border-radius: 10px;
+    margin: 5px;
+}
+
+.battlefield {
+    height: 24vh;
+    width: 100%;
+
+    background-image: radial-gradient(rgb(70, 70, 70) 5%, rgb(50, 50, 50) 0);
+    background-size: 22px 22px;
+
+    position: relative;
+    z-index: 2;
+}
+
+.battlefield-lower {
+    border-top: 2px black dashed;
+    z-index: 1;
+    filter: drop-shadow(-5px 8px 10px #000000);
+}
+
+.lands {
+    display: flex;
+    height: 19vh;
+    width: 100%;
+    background-color: rgb(40, 40, 40);
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+.battlefield, .lands, .other-zones{
+    font-family: monospace;
+    font-size: x-large;
+    color:rgba(0, 0, 0, 0.6)
+}
+
+.zone_multiple > .card {
+    filter: drop-shadow(2px 5px 1px #000000);
+}
+
+.horizontal-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}

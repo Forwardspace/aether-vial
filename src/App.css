@@ -12,6 +12,8 @@ body {
     --contexify-activeArrow-color: #fff;
 
     overflow: hidden;
+    overflow-anchor: none;
+    user-select: none;
 }
 
 .full {

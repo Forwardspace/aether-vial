@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import './index.css';
+import "react-contexify/dist/ReactContexify.css";
 
 import App from './App';
 

@@ -1,4 +1,3 @@
-
 import placeholder from "../res/placeholder.jpg";
 
 var queue = []
@@ -35,7 +34,7 @@ export function fetchCardByNameNonThrottled(name, setImage) {
             }
             return placeholder;
         }
-        return data.image_uris.normal != undefined ? data.image_uris.normal : placeholder;
+        return data.image_uris != undefined ? data.image_uris.normal : placeholder;
     }
 
     return fetch(`https://api.scryfall.com/cards/named?fuzzy=${name}`)
