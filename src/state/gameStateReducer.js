@@ -90,13 +90,13 @@ export function gameStateReducer(state, action) {
                 }
             ); return newState;
         case "UNTAP_ALL":
-            newState.common[action.payload.who]["zones"]["battlefield"] = newState.common[action.payload.who]["zones"]["battlefield"].map(
+            newState.common[newState.local.role]["zones"]["battlefield"] = newState.common[newState.local.role]["zones"]["battlefield"].map(
                 card => {
                     card.tapped = false;
                     return card;
                 }
             );
-            newState.common[action.payload.who]["zones"]["lands"] = newState.common[action.payload.who]["zones"]["lands"].map(
+            newState.common[newState.local.role]["zones"]["lands"] = newState.common[newState.local.role]["zones"]["lands"].map(
                 card => {
                     card.tapped = false;
                     return card;
@@ -115,22 +115,19 @@ export function getCardLocation(store, id) {
     var fromWhere = null;
     var fromWho = null;
 
-    for (const [key, value] of Object.entries(store.common.host.zones)) {
-        if (value.find(card => card.id === id)) {
-            fromWhere = key;
-            fromWho = "host";
-            break;
-        }
-    }
-    if (fromWhere === null) {
-        for (const [key, value] of Object.entries(store.common.client.zones)) {
-            if (value.find(card => card.id === id)) {
-                fromWhere = key;
-                fromWho = "client";
+    for (const [player, zones] of Object.entries(store.common)) {
+        for (const [zone, cards] of Object.entries(zones.zones)) {
+            if (cards.find(card => card.id === id)) {
+                fromWhere = zone;
+                fromWho = player;
                 break;
             }
         }
+        if (fromWhere !== null) {
+            break;
+        }
     }
+    
     if (fromWhere === null) {
         console.error("Card not found in any zone!");
         return null;

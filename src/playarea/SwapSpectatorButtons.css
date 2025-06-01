@@ -1,0 +1,32 @@
+.swap-spectator-buttons {
+    position: absolute;
+    top: -2vh;
+    left: 0.5vw;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.select-spectator-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    background-color: rgb(59, 101, 72);
+    border: 0px;
+    color: rgb(146, 146, 146);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: large;
+}
+
+.select-spectator-button:hover {
+    background-color: rgb(39, 78, 43);
+}
+
+.select-spectator-button-active {
+    background-color: rgb(9, 64, 10);
+    scale: 1.1;
+}

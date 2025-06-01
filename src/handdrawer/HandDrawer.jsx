@@ -15,11 +15,12 @@ export function HandDrawer(props) {
     window.scrollTo(0, 0)
     }, [])
 
-    var who = useSelector(state => state["local"]["role"]);
+    var us = useSelector(state => state["local"]["role"]);
+    var enemy = useSelector(state => state["local"]["spectating"]);
 
-    const { isOver, setNodeRef } = useDroppable({
-        id: props.where + '_' + props.who,
-    });
+    //const { isOver, setNodeRef } = useDroppable({
+    //    id: props.where + '_' + props.who,
+    //});
 
     var styleDrawer = {}
     var styleButton = {}
@@ -30,7 +31,7 @@ export function HandDrawer(props) {
         open = true;
     }
 
-    if (props.who != who) {
+    if (props.enemy) {
         styleDrawer = {
             transform: open ? "translate(0px, 0px)" : "translate(0px, -15vh)",
             top: "0",
@@ -55,10 +56,14 @@ export function HandDrawer(props) {
         }
     }
 
+    if (!us || !enemy) {
+        return null;
+    }
+
     return (
-        <div ref={ref} className="card-drawer" style={styleDrawer} >
-            <ExpandButton style={styleButton} className="card-drawer-button" />
-            <Zone className="card-drawer-container" name_human_readable="Hand" where="hand" who={props.who}/>
+        <div ref={ref} className="card-drawer" style={styleDrawer}>
+            <ExpandButton style={styleButton} className="card-drawer-button"/>
+            <Zone className="card-drawer-container" name_human_readable="Hand" where="hand" who={props.enemy? enemy : us}/>
         </div>
     );
 }

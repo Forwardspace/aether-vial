@@ -20,12 +20,12 @@ export function WelcomeScreen(props) {
         else if (role == "test") {
             dispatch({ type: "SET_CONNECTED", payload: true });
             dispatch({ type: "SET_ROLE", payload: "host" });
-            dispatch({ type: "SET_HOST_ID", payload: null });
+            dispatch({ type: "SET_SPECTATING", payload: "client1"})
         }
         else if (role == "demo") {
             dispatch({ type: "SET_CONNECTED", payload: true });
             dispatch({ type: "SET_ROLE", payload: "host" });
-            dispatch({ type: "SET_HOST_ID", payload: null });
+            dispatch({ type: "SET_SPECTATING", payload: "client1"})
 
             // Set up a demo game
             

@@ -1,17 +1,21 @@
 import "./PlayArea.css";
 import { Zone } from "../zone/Zone"; 
+import { SwapSpectatorButtons } from "./SwapSpectatorButtons";
 
 import { useSelector } from 'react-redux';
 
 export default function PlayArea(props) {
-    var who = useSelector(state => state["local"]["role"]);
+    var us = useSelector(state => state["local"]["role"]);
+    var enemy = useSelector(state => state["local"]["spectating"]);
 
-    var us = who;
-    var enemy = (who == "host")? "client":"host";
+    if (!us || !enemy) {
+        return null; // Don't render the play area if we don't have roles set
+    }
 
     return (
         <div className="play-area-container">
             <div className="play-area">
+                <SwapSpectatorButtons />
                 <div className="battlefield-area">
                     <Zone className="lands" name_human_readable="Lands" where="lands" who={enemy}/>
                     <Zone className="battlefield" name_human_readable="Battlefield" where="battlefield" who={enemy}/>

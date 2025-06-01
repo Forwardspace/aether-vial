@@ -38,18 +38,13 @@ function onDragEnd(event, setDraggedItem) {
   setDraggedItem(null);
 }
 
-function onKeydown(who, e) {
+function onKeydown(e) {
   if (e.key == "Control") {
     isControlPressed = true;
   }
-
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    store.dispatch({ type: "ADD_CARD", payload: { who: "host", where: "battlefield", card: getNewCardWithName("Black Lotus") } });
-  }
   else if (e.key === 'Tab') {
     e.preventDefault();
-    store.dispatch({ type: "UNTAP_ALL", payload: { who: who } });
+    store.dispatch({ type: "UNTAP_ALL" });
   }
 }
 
@@ -87,35 +82,34 @@ function App() {
   peer.on('connection', function (connection) {
     store.dispatch({ type: "SET_ROLE", payload: "host" });
     store.dispatch({ type: "SET_CONNECTED", payload: true });
+    store.dispatch({ type: "SET_HOST_ID", payload: peer.id });
 
     connection.on('open', function () {
       connection.on('data', function (data) {
-        data["origin"] = "remote";
         store.dispatch(data);
       });
 
+      store.dispatch({ type: "SET_NUM_PLAYERS", payload: Object.keys(peer.connections).length + 1 });
+      store.dispatch({ type: "SET_SPECTATING", payload: "client1" });
       store.dispatch({ type: "UPDATE_COMMON_STATE" });
     });
   });
   function connectTo(peerId) {
     var connection = peer.connect(peerId);
     connection.on('open', function () {
-      store.dispatch({ type: "SET_ROLE", payload: "client" });
-      store.dispatch({ type: "SET_CONNECTED", payload: true });
-
       connection.on('data', function (data) {
-        data["origin"] = "remote";
         store.dispatch(data);
       });
+
+      store.dispatch({ type: "SET_CONNECTED", payload: true });
+      store.dispatch({ type: "SET_SPECTATING", payload: "host" });
     });
   }
 
   var [draggedItem, setDraggedItem] = useState(null);
-  var who = store.getState().local.role;
-  var enemy = (who === "host" ? "client" : "host");
 
   useEffect(() => {
-    window.removeEventListener('keydown', onKeydown); window.addEventListener('keydown', onKeydown.bind(this, who));
+    window.removeEventListener('keydown', onKeydown); window.addEventListener('keydown', onKeydown);
     window.removeEventListener('keyup', onKeyup); window.addEventListener('keyup', onKeyup);
   }, [])
 
@@ -123,10 +117,9 @@ function App() {
     <Provider store={store}>
       <WelcomeScreen hostId={peer.id} connectTo={connectTo} />
       <DndContext onDragStart={(event) => onDragStart(event, setDraggedItem)} onDragEnd={(event) => onDragEnd(event, setDraggedItem)} collisionDetection={customIntersection}>
-
-        <HandDrawer who={enemy} />
+        <HandDrawer enemy={true} />
         <PlayArea />
-        <HandDrawer who={who} />
+        <HandDrawer enemy={false} />
 
         <DragOverlay style={{ opacity: 0.7 }}>
           {draggedItem &&

@@ -14,6 +14,7 @@ import { getNewCardWithName } from '../state/gameStateReducer';
 export function Zone(props) {
     const us = useSelector(state => state["local"]["role"]);
     const relevantCards = useSelector(state => state["common"][props.who]["zones"][props.where]);
+    const hostId = useSelector(state => state["local"]["hostId"]);
     var searchZone = useSelector(state => state["local"]["searchZone"]);
 
     const { isOver, setNodeRef } = useDroppable({
@@ -77,11 +78,16 @@ export function Zone(props) {
 
     var [spawnCardModalOpen, setSpawnCardModalOpen] = useState(false);
     var [importDeckModalOpen, setImportDeckModalOpen] = useState(false);
+    var [gameDetailsModalOpen, setGameDetailsModalOpen] = useState(false);
 
     var style = {
         backgroundColor: isOver ? "rgba(0, 0, 150, 0.3)" : undefined,
         backgroundImage: isOver ? "none" : undefined
     };
+
+    if (!us) {
+        return null; // Not connected yet
+    }
 
     // Special case - if this is the library/exile/graveyard, display the cards in a "stack" as a single card
     if (!props.expand && (props.where === "library" || props.where === "exile" || props.where === "graveyard") && relevantCards.length > 0) {
@@ -112,10 +118,11 @@ export function Zone(props) {
                 <Menu id={menuId}>
                     <Item disabled>{props.name_human_readable}</Item>
                     <Separator />
+                    <Item>Clear zone</Item>
+                    <Separator />
                     <Item onClick={() => setSpawnCardModalOpen(true)}>Spawn card</Item>
                     <Item onClick={() => setImportDeckModalOpen(true)}>Import decklist to Library</Item>
-                    <Separator />
-                    <Item>Clear zone</Item>
+                    <Item onClick={() => setGameDetailsModalOpen(true)}>Game details</Item>
                 </Menu>
             ), document.body)}
             {spawnCardModalOpen && createPortal((
@@ -133,6 +140,18 @@ export function Zone(props) {
                         <h3>Import decklist</h3>
                         <textarea ref={importDeckRef} className="modal-textarea" placeholder="Decklist (if exporting from other sites, use the MTG Online export format)" />
                         <button className="modal-button" onClick={() => onImportDeck()}>Import</button>
+                    </div>
+                </div>
+            ), document.body)}
+            {gameDetailsModalOpen && createPortal((
+                <div className="modal-frame" onClick={() => setGameDetailsModalOpen(false)}>
+                    <div className="game-details-modal-content" onClick={(ev) => ev.stopPropagation()}>
+                        <h3>Game Details</h3>
+                        <p>Your role: {props.who}</p>
+                        <button disabled={props.who != "host"} className="modal-button" onClick={() => {navigator.clipboard.writeText(hostId)}}>Copy Host ID</button>
+                        <button className="modal-button" onClick={() => {}}>Backup Game State</button>
+                        <button className="modal-button" onClick={() => {}}>Recover Game State</button>
+                        <button className="modal-button" onClick={() => setGameDetailsModalOpen(false)}>Close</button>
                     </div>
                 </div>
             ), document.body)}
