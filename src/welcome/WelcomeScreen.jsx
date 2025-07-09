@@ -28,7 +28,7 @@ export function WelcomeScreen(props) {
             dispatch({ type: "SET_SPECTATING", payload: "client1"})
 
             // Set up a demo game
-            
+            dispatch({ type: "SETUP_DEMO_STATE" });
         }
         else {
             console.error("Unknown role selected in welcome screen!");

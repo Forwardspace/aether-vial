@@ -78,6 +78,7 @@ function rootReducer(state, action) {
         case "SET_NUM_PLAYERS":
             return metaStateReducer(state, action);
 
+        case "SETUP_DEMO_STATE":
         case "ADD_CARD":
         case "REMOVE_CARD":
         case "MOVE_CARD":

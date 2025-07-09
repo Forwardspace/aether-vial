@@ -6,6 +6,8 @@ export function gameStateReducer(state, action) {
     var newState = deepCopyState(state);
     
     switch (action.type) {
+        case "SETUP_DEMO_STATE":
+            newState.common = getDemoState(); return newState;
         case "ADD_CARD":
             newState.common[action.payload.who]["zones"][action.payload.where].push(action.payload.card); return newState;
         case "REMOVE_CARD":
@@ -175,4 +177,41 @@ export function moveCard(store, id, moveTo, lastCard=false) {
             newIndex: newIndex
         } 
     };
+}
+
+function getDemoState() {
+    return {
+        host: {
+            state: {
+                health: 28,
+                infect: 0,
+                tax: 0
+            },
+            zones: {
+                hand: [getNewCardWithName("Forest"), getNewCardWithName("Forest"), getNewCardWithName("Wrenn and Realmbreaker"), getNewCardWithName("Reject Imperfection")],
+                battlefield: [getNewCardWithName("Birds of Paradise"), getNewCardWithName("Binding the Old Gods")],
+                lands: [getNewCardWithName("Forest"), getNewCardWithName("Swamp"), getNewCardWithName("Mana Confluence"), getNewCardWithName("Blood Crypt")],
+                graveyard: [],
+                exile: [],
+                library: [getNewCardWithName("Swamp"), getNewCardWithName("Phyrexian Scriptures"), getNewCardWithName("Ondu Spiritdancer")],
+                commandzone: [getNewCardWithName("Tom Bombadil")]
+            }
+        },
+        client1: {
+            state: {
+                health: 35,
+                infect: 0,
+                tax: 0
+            },
+            zones: {
+                hand: [getNewCardWithName("Plains"), getNewCardWithName("Ravenous Amulet")],
+                battlefield: [getNewCardWithName("Annointed Procession"), getNewCardWithName("Warleader's Call"), getNewCardWithName("Cat Soldier"), getNewCardWithName("Sunspine Lynx")],
+                lands: [getNewCardWithName("Mountain"), getNewCardWithName("Plains"), getNewCardWithName("Plains"), getNewCardWithName("Rogue's Passage")],
+                graveyard: [],
+                exile: [],
+                library: [getNewCardWithName("Arid Mesa"), getNewCardWithName("Plains"), getNewCardWithName("Ajani Steadfast")],
+                commandzone: [getNewCardWithName("Ajani, Nacatl Pariah")]
+            }
+        }
+    }
 }
